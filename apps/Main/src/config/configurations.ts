@@ -10,4 +10,11 @@ const DatabaseConfig = registerAs('Database', () => ({
   dialect: 'postgres',
 }));
 
-export const configurations = [DatabaseConfig];
+const RedisConfig = registerAs('Redis', () => ({
+  host: '127.0.0.1',
+  port: 63799,
+  cacheDb: 10,
+  session: 11,
+}));
+
+export const configurations = [DatabaseConfig, RedisConfig];

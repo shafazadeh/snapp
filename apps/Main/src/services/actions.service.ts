@@ -29,7 +29,7 @@ export class SelfActionService {
       throw new Error('err_service_noActionFound');
     console.log(provider, actionName);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const response = await provider[actionName]();
+    const response = await provider[actionName](data?.query);
     return {
       message: response?.message ?? 'ok',
       data: response?.data ?? response,
