@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
-import { DriverRequestOTPDto } from 'src/dtos/driver.dto';
+import {
+  DriverRequestOTPDto,
+  DriverVerifyOtpInputDto,
+} from 'src/dtos/driver.dto';
 import { handleServiceResponse } from 'src/response/httpExceeption.filter';
 import { MainServiceClient } from 'src/services/main.service';
 
@@ -16,5 +19,14 @@ export class DriverAuthService {
     });
 
     return handleServiceResponse(data);
+  }
+
+  async verifyOtp(body: DriverVerifyOtpInputDto) {
+    const response = await this.mainSrvCli.callAction({
+      provider: 'DRIVERS',
+      action: 'verifyOtp',
+      query: body,
+    });
+    return handleServiceResponse(response);
   }
 }

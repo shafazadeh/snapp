@@ -32,4 +32,26 @@ export class DriverService {
       data: { success: true, otp, phone, expiresIn: ttl },
     };
   }
+
+  async verifyOtp({
+    query,
+  }: ServiceClientContextDto): Promise<ServiceResponseData> {
+    const { phone, otp } = query;
+
+    const key = `otp:${DriverService.role}:${phone}`;
+    const savedOtp = await this.redis.cacheCli.get(key);
+    if (!savedOtp)
+      throw new SrvError(HttpStatus.BAD_REQUEST, 'otp not found or expired');
+
+    if (savedOtp !== otp)
+      throw new SrvError(HttpStatus.BAD_REQUEST, 'invalid otp');
+    await this.redis.cacheCli.del(key);
+    return {
+      message: 'otp is vail',
+      data: {
+        success: true,
+        phone,
+      },
+    };
+  }
 }
