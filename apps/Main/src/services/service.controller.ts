@@ -17,7 +17,7 @@ export class ServiceController {
       const res: any = await this.actions.findAndCall(data);
       return {
         context: data,
-        status: 'SUCESS',
+        status: 'SUCCEED',
         code: 200,
         message: res?.message || 'ok',
         error: null,
