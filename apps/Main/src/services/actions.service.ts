@@ -1,13 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
 import { DriverService } from 'providers/driver.service';
-
+import { ServiceClientActionInputDto, ServiceResponseData } from './dto';
+import _ from 'lodash';
 @Injectable()
 export class SelfActionService {
   constructor(private readonly driverService: DriverService) {}
 
-  async findAndCall(data: any) {
+  async findAndCall(
+    data: ServiceClientActionInputDto,
+  ): Promise<ServiceResponseData> {
     const providerName = data?.provider || null;
     const actionName = data?.action || null;
 
@@ -27,9 +31,10 @@ export class SelfActionService {
 
     if (!provider || !provider[actionName])
       throw new Error('err_service_noActionFound');
-    console.log(provider, actionName);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const response = await provider[actionName](data?.query);
+
+    const response = await provider[actionName](
+      _.pick(data, ['query', 'set', 'options']),
+    );
     return {
       message: response?.message ?? 'ok',
       data: response?.data ?? response,
