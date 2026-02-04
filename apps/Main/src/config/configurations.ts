@@ -17,4 +17,9 @@ const RedisConfig = registerAs('Redis', () => ({
   session: 11,
 }));
 
-export const configurations = [DatabaseConfig, RedisConfig];
+const JwtConfig = registerAs('Jwt', () => ({
+  access: { secret: 'ACCESS_SECRET', expireSecounds: 60 * 15 },
+  refresh: { secret: 'REFRESH_SECRET', expireSecounds: 60 * 60 * 24 * 7 },
+}));
+
+export const configurations = [DatabaseConfig, RedisConfig, JwtConfig];
