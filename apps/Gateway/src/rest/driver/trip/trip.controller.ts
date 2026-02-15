@@ -52,21 +52,21 @@ export class DriverTripController {
     });
   }
 
-  // @Post(':tripId/end')
-  // @ApiOperation({ summary: 'End trip' })
-  // async endTrip(@Param('tripId') tripId: string, @Request() req) {
-  //   return this.tripService.endTrip({
-  //     tripId,
-  //     driverId: req.driver.id,
-  //   });
-  // }
+  @Post(':tripId/end')
+  @ApiOperation({ summary: 'End trip' })
+  async endTrip(@Param('tripId') tripId: string, @Request() req) {
+    return this.tripService.endTrip({
+      tripId,
+      driverId: req.driver.id,
+    });
+  }
 
-  // @Post(':tripId/cancel')
-  // @ApiOperation({ summary: 'Cancel trip by driver' })
-  // async cancelTrip(@Param('tripId') tripId: string, @Request() req) {
-  //   return this.tripService.cancelTrip({
-  //     tripId,
-  //     driverId: req.driver.id,
-  //   });
-  // }
+  @Post(':tripId/cancel')
+  @ApiOperation({ summary: 'Cancel trip by driver' })
+  async cancelTrip(@Param('tripId') tripId: string, @Request() req) {
+    return this.tripService.cancelTrip({
+      tripId,
+      driverId: req.driver.id,
+    });
+  }
 }

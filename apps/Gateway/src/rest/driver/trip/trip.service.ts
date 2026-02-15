@@ -5,7 +5,6 @@
 
 import { Injectable } from '@nestjs/common';
 import { handleSrvCliResponse } from 'src/response/httpExceeption.filter';
-// import { handleSrvCliResponse } from 'src/response/httpException.filter';
 import { MainServiceClient } from 'src/services/main.service';
 import { AppSocketGateway } from 'src/socket/socket.gateway';
 
@@ -75,43 +74,43 @@ export class DriverTripService {
     return handleSrvCliResponse(res);
   }
 
-  // async endTrip(data: any) {
-  //   const res = await this.mainSrvCli.callAction({
-  //     provider: 'TRIPS',
-  //     action: 'end',
-  //     query: data,
-  //   });
+  async endTrip(data: any) {
+    const res = await this.mainSrvCli.callAction({
+      provider: 'TRIPS',
+      action: 'end',
+      query: data,
+    });
 
-  //   const trip = res.data;
+    const trip = res.data;
 
-  //   this.socketGateway.server
-  //     .to(`passenger_${trip.passengerId}`)
-  //     .emit('trip:ended', {
-  //       tripId: trip.id,
-  //       driverId: trip.driverId,
-  //       finishedAt: trip.finishedAt,
-  //       finalFare: trip.finalFare,
-  //     });
+    this.socketGateway.server
+      .to(`passenger_${trip.passengerId}`)
+      .emit('trip:ended', {
+        tripId: trip.id,
+        driverId: trip.driverId,
+        finishedAt: trip.finishedAt,
+        finalFare: trip.finalFare,
+      });
 
-  //   return handleSrvCliResponse(res);
-  // }
+    return handleSrvCliResponse(res);
+  }
 
-  // async cancelTrip(data: any) {
-  //   const res = await this.mainSrvCli.callAction({
-  //     provider: 'TRIPS',
-  //     action: 'cancelByDriver',
-  //     query: data,
-  //   });
+  async cancelTrip(data: any) {
+    const res = await this.mainSrvCli.callAction({
+      provider: 'TRIPS',
+      action: 'cancelByDriver',
+      query: data,
+    });
 
-  //   const trip = res.data;
+    const trip = res.data;
 
-  //   this.socketGateway.server
-  //     .to(`passenger_${trip.passengerId}`)
-  //     .emit('trip:cancelled', {
-  //       tripId: trip.id,
-  //       cancelledBy: 'DRIVER',
-  //     });
+    this.socketGateway.server
+      .to(`passenger_${trip.passengerId}`)
+      .emit('trip:cancelled', {
+        tripId: trip.id,
+        cancelledBy: 'DRIVER',
+      });
 
-  //   return handleSrvCliResponse(res);
-  // }
+    return handleSrvCliResponse(res);
+  }
 }
