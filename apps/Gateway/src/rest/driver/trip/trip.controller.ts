@@ -43,14 +43,14 @@ export class DriverTripController {
     });
   }
 
-  // @Post(':tripId/start')
-  // @ApiOperation({ summary: 'Start trip (passenger picked up)' })
-  // async startTrip(@Param('tripId') tripId: string, @Request() req) {
-  //   return this.tripService.startTrip({
-  //     tripId,
-  //     driverId: req.driver.id,
-  //   });
-  // }
+  @Post(':tripId/start')
+  @ApiOperation({ summary: 'Start trip (passenger picked up)' })
+  async startTrip(@Param('tripId') tripId: string, @Request() req) {
+    return this.tripService.startTrip({
+      tripId,
+      driverId: req.driver.id,
+    });
+  }
 
   // @Post(':tripId/end')
   // @ApiOperation({ summary: 'End trip' })
