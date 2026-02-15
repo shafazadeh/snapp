@@ -1,65 +1,48 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { ConfigService } from '@nestjs/config';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+
 import Redis from 'ioredis';
+import config from 'config';
+const redisConfig: any = config.get('databases.redis');
+
 @Injectable()
 export class RedisService implements OnModuleInit {
-  private logger = new Logger('database/redis/redis.service');
+  private logger = new Logger('databases/redis/redis.service');
 
   public cacheCli!: Redis;
   public sessionCli!: Redis;
 
-  constructor(private configService: ConfigService) {}
-
-  // eslint-disable-next-line @typescript-eslint/require-await
   async onModuleInit() {
     const cacheClient = new Redis({
-      host: this.configService.get('Redis.host'),
-      port: this.configService.get('Redis.port'),
-      db: this.configService.get('Redis.cacheDb'),
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 10, 2000);
-        return delay;
-      },
+      host: redisConfig.host,
+      port: redisConfig.port,
+      db: redisConfig.cacheDb,
     });
-
-    cacheClient.on('error', (err) => {
-      this.logger.fatal('failed to connect to redis db ');
-      this.logger.fatal(err);
+    cacheClient.on('error', (e) => {
+      this.logger.fatal('cacheClient connecting error');
+      this.logger.fatal(e);
       process.exit(1);
     });
-
     cacheClient.on('connect', () => {
-      this.logger.verbose('coonnect to redis ');
+      this.logger.verbose('cacheClient is connected!');
     });
-
     this.cacheCli = cacheClient;
 
     const sessionClient = new Redis({
-      host: this.configService.get('Redis.host'),
-      port: this.configService.get('Redis.port'),
-      db: this.configService.get('Redis.sessionDb'),
-      retryStrategy: (times) => {
-        const delay = Math.min(times * 10, 2000);
-        return delay;
-      },
+      host: redisConfig.host,
+      port: redisConfig.port,
+      db: redisConfig.sessionDb,
     });
 
-    sessionClient.on('error', (err) => {
-      this.logger.fatal('Failed to connect to Redis Session DB');
-      this.logger.fatal(err);
+    sessionClient.on('error', (e) => {
+      this.logger.fatal('sessionClient connecting error');
+      this.logger.fatal(e);
       process.exit(1);
     });
-
     sessionClient.on('connect', () => {
-      this.logger.verbose('Connected to Redis Session DB');
+      this.logger.verbose('sessionClient is connected!');
     });
-
     this.sessionCli = sessionClient;
-  }
-  async onModuleDestroy() {
-    if (this.cacheCli) await this.cacheCli.quit();
-    if (this.sessionCli) await this.sessionCli.quit();
   }
 }

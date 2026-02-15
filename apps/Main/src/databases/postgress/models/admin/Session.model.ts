@@ -1,27 +1,27 @@
-import { DataType, Table, Column, Model } from 'sequelize-typescript';
+import { Column, DataType, Model, Table } from 'sequelize-typescript';
 
 @Table({
-  tableName: 'driver_session',
+  tableName: 'admin_session',
   timestamps: true,
   freezeTableName: true,
 })
-export class DriverSession extends Model {
+export class AdminSession extends Model {
   @Column({
     type: DataType.UUID,
     primaryKey: true,
     defaultValue: DataType.UUIDV4,
   })
-  declare id: string;
+  declare id?: string;
 
   @Column({
     type: DataType.UUID,
     allowNull: false,
   })
-  declare driverId: string;
+  adminId?: string;
 
   @Column({
     type: DataType.DATE,
     allowNull: false,
   })
-  declare refreshExpiresAt: Date;
+  refreshExpiresAt?: Date;
 }

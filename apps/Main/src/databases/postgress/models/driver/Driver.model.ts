@@ -1,4 +1,4 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { DataType, Table, Column, Model } from 'sequelize-typescript';
 
 @Table({
   tableName: 'driver',
@@ -18,69 +18,69 @@ export class Driver extends Model {
     allowNull: false,
     unique: true,
   })
-  declare phone?: string;
+  phone?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
     unique: true,
   })
-  declare email?: string;
+  email?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  declare password?: string;
+  password?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  declare firstName?: string;
+  firstName?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  declare lastName?: string;
+  lastName?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  declare carModel?: string;
+  carModel?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  declare carColor?: string;
+  carColor?: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
   })
-  declare plateNumber?: string;
+  plateNumber?: string;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: true,
   })
-  declare isActive?: boolean;
+  isActive?: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false,
   })
-  declare isOnline?: boolean;
+  isOnline?: boolean;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false,
   })
-  declare isVerified?: boolean;
+  isVerified?: boolean;
 }

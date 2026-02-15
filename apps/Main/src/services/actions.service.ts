@@ -5,9 +5,13 @@ import { Injectable } from '@nestjs/common';
 import { DriverService } from 'providers/driver.service';
 import { ServiceClientActionInputDto, ServiceResponseData } from './dto';
 import _ from 'lodash';
+import { AdminService } from 'providers/admin.service';
 @Injectable()
 export class SelfActionService {
-  constructor(private readonly driverService: DriverService) {}
+  constructor(
+    private readonly driverService: DriverService,
+    private readonly adminService: AdminService,
+  ) {}
 
   async findAndCall(
     data: ServiceClientActionInputDto,
@@ -22,6 +26,9 @@ export class SelfActionService {
     switch (providerName) {
       case 'DRIVERS':
         provider = this.driverService;
+        break;
+      case 'ADMINS':
+        provider = this.adminService;
         break;
 
       default:

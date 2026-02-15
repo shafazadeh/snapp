@@ -2,31 +2,42 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import {
-  DriverRequestOTPDto,
+  DriverRequestOtpInputDto,
   DriverVerifyOtpInputDto,
-} from 'src/dtos/driver.dto';
-import { handleServiceResponse } from 'src/response/httpExceeption.filter';
+} from 'src/dtos/driver/driver.dto';
+import { handleSrvCliResponse } from 'src/response/httpExceeption.filter';
 import { MainServiceClient } from 'src/services/main.service';
 
 @Injectable()
 export class DriverAuthService {
   constructor(private readonly mainSrvCli: MainServiceClient) {}
-  async requestOtp(body: DriverRequestOTPDto) {
-    const data: any = await this.mainSrvCli.callAction({
+
+  async requestOtp(body: DriverRequestOtpInputDto) {
+    const data = await this.mainSrvCli.callAction({
       provider: 'DRIVERS',
       action: 'requestOtp',
       query: body,
     });
 
-    return handleServiceResponse(data);
+    return handleSrvCliResponse(data);
   }
 
   async verifyOtp(body: DriverVerifyOtpInputDto) {
-    const response = await this.mainSrvCli.callAction({
+    const data = await this.mainSrvCli.callAction({
       provider: 'DRIVERS',
       action: 'verifyOtp',
       query: body,
     });
-    return handleServiceResponse(response);
+
+    return handleSrvCliResponse(data);
+  }
+
+  async authorize(token: string) {
+    const data = await this.mainSrvCli.callAction({
+      provider: 'DRIVERS',
+      action: 'authorize',
+      query: { token },
+    });
+    return handleSrvCliResponse(data);
   }
 }

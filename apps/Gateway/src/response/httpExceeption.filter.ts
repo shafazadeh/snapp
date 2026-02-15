@@ -16,11 +16,10 @@ export function throwHttpErr(errorData: ServiceClientOutputDto<any>) {
   );
 }
 
-export function handleServiceResponse(data: ServiceClientOutputDto<any>) {
+export function handleSrvCliResponse(data: ServiceClientOutputDto<any>) {
   if (data?.status != 'SUCCEED') throwHttpErr(data);
   return data.data;
 }
-
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {

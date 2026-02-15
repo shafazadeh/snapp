@@ -1,0 +1,111 @@
+{
+  "server": {
+    "name": "Snapp",
+    "port": 3000,
+    "apiVersion": "v1",
+    "isTest": true,
+    "url": "http://localhost:3000/",
+    "cookieOptions": {
+      "httpOnly": true
+    },
+    "cors": {
+      "path": "*",
+      "options": {
+        "origin": [
+          "localhost",
+          "http://localhost",
+          "localhost:3000",
+          "http://localhost:3000"
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        "credentials": true,
+        "optionsSuccessStatus": 200
+      }
+    },
+    "urlencoded": {
+      "limit": "2mb",
+      "extended": true,
+      "parameterLimit": 50
+    },
+    "cookieParser": {
+      "origin": "*",
+      "credentials": true
+    },
+    "swagger": {
+      "title": "Snapp: Gateway service",
+      "description": "The main gateway service for Snapp app and admin panel",
+      "version": "1.0.0"
+    }
+  },
+  "service": {
+    "gateway": {
+      "tcp": {
+        "host": "localhost",
+        "port": 8501
+      },
+      "rabbit": {
+        "urls": ["amqp://rabbit:rabbit@localhost:5672"],
+        "queue": "gateway",
+        "queueOptions": {
+          "durable": false
+        }
+      }
+    },
+    "main": {
+      "tcp": {
+        "host": "localhost",
+        "port": 8511
+      },
+      "rabbit": {
+        "urls": ["amqp://rabbit:rabbit@localhost:5672"],
+        "queue": "main",
+        "queueOptions": {
+          "durable": false
+        }
+      }
+    }
+  },
+  "databases": {
+    "postgres": {
+      "core": {
+        "sync": {
+          "force": false,
+          "alter": true
+        },
+        "database": "snappdb",
+        "username": "snapp",
+        "password": "snapp_pass",
+        "host": "localhost",
+        "port": 5432,
+        "dialect": "postgres",
+        "logging": false,
+        "define": {
+          "charset": "utf8",
+          "collate": "utf8_general_ci"
+        },
+        "pool": {
+          "max": 80,
+          "min": 0,
+          "acquire": 30000,
+          "idle": 1000
+        }
+      }
+    },
+    "redis": {
+      "host": "localhost",
+      "port": 6379,
+      "cacheDb": 11,
+      "sessionDb": 12
+    }
+  },
+  "jwt": {
+    "access": {
+      "expiresInSeconds": 900,
+      "secret": "abcd1234"
+    },
+    "refresh": {
+      "expiresInSeconds": 123033600,
+      "secret": "abcd1234"
+    }
+  }
+}

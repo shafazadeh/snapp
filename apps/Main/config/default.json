@@ -1,0 +1,91 @@
+{
+  "server": {
+    "name": "Snapp",
+    "cookieOptions": {
+      "httpOnly": true
+    }
+  },
+  "service": {
+    "gateway": {
+      "tcp": {
+        "host": "localhost",
+        "port": 8501
+      },
+      "rabbit": {
+        "urls": ["amqp://rabbit:rabbit@localhost:5672"],
+        "queue": "gateway",
+        "queueOptions": {
+          "durable": false
+        }
+      }
+    },
+    "main": {
+      "tcp": {
+        "host": "localhost",
+        "port": 8511
+      },
+      "rabbit": {
+        "urls": ["amqp://rabbit:rabbit@localhost:5672"],
+        "queue": "main",
+        "queueOptions": {
+          "durable": false
+        }
+      }
+    }
+  },
+  "databases": {
+    "postgres": {
+      "core": {
+        "sync": {
+          "force": false,
+          "alter": true
+        },
+        "database": "snappdb",
+        "username": "snapp",
+        "password": "snapp_pass",
+        "host": "localhost",
+        "port": 5432,
+        "dialect": "postgres",
+        "logging": false,
+        "define": {
+          "charset": "utf8",
+          "collate": "utf8_general_ci"
+        },
+        "pool": {
+          "max": 80,
+          "min": 0,
+          "acquire": 30000,
+          "idle": 1000
+        }
+      }
+    },
+    "redis": {
+      "host": "127.0.0.1",
+      "port": 63799,
+      "cacheDb": 10,
+      "session": 11
+    }
+  },
+  "jwt": {
+    "access": {
+      "expiresInSeconds": 900,
+      "secret": "abcd1234"
+    },
+    "refresh": {
+      "expiresInSeconds": 123033600,
+      "secret": "abcd1234"
+    }
+  },
+
+  "fare": {
+    "baseFare": 20000,
+    "perKm": 5000,
+    "perMinute": 2000,
+    "trafficMultiplier": {
+      "low": 1,
+      "medium": 1.2,
+      "high": 1.5
+    },
+    "platformCommissionPercent": 15
+  }
+}

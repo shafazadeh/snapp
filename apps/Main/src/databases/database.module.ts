@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
-import { PostgressService } from './postgress/postgress.service';
+import { PostgresService } from './postgress/postgress.service';
 import { RedisService } from './redis/rediis.service';
 
 @Global()
 @Module({
-  providers: [PostgressService, RedisService],
-  exports: [PostgressService, RedisService],
+  providers: [PostgresService, RedisService],
+  exports: [PostgresService, RedisService],
 })
 export class DatabaseModule {}

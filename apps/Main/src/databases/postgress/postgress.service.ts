@@ -1,48 +1,65 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Logger } from '@nestjs/common';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
+
 import * as models from './models';
+
+import config from 'config';
+const pgConfig: any = config.get('databases.postgres.core');
+
 @Injectable()
-export class PostgressService implements OnModuleInit {
+export class PostgresService implements OnModuleInit {
   public connection: Sequelize;
-  private logger = new Logger('database/postgress/postgress.service');
-  constructor(private readonly configService: ConfigService) {}
+  private logger = new Logger('databases/postgres/postgres.service');
 
   async onModuleInit() {
-    const dbConfig = this.configService.get('Database');
+    console.log('🔹 Trying to connect to database with config');
 
     const sequelizeInstance = new Sequelize({
-      dialect: dbConfig.dialect,
-      host: dbConfig.host,
-      port: dbConfig.port,
-      username: dbConfig.username,
-      password: dbConfig.password,
-      database: dbConfig.database,
+      dialect: pgConfig.dialect,
+      host: pgConfig.host,
+      port: pgConfig.port,
+      username: pgConfig.username,
+      password: pgConfig.password,
+      database: pgConfig.database,
       logging: false,
     });
-
     sequelizeInstance.addModels(Object.values(models));
-    models.Driver.hasOne(models.DriverSeesion, {
+
+    models.Admin.hasMany(models.AdminSession, {
+      foreignKey: 'adminId',
+      as: 'sessions',
+    });
+    models.AdminSession.belongsTo(models.Admin, {
+      foreignKey: 'adminId',
+      as: 'profile',
+    });
+    models.Admin.addScope('withoutPassword', {
+      attributes: {
+        exclude: ['password', 'salt'],
+      },
+    });
+
+    models.Driver.hasOne(models.DriverSession, {
       foreignKey: 'driverId',
       as: 'session',
     });
-
-    models.DriverSeesion.belongsTo(models.Driver, {
+    models.DriverSession.belongsTo(models.Driver, {
       foreignKey: 'driverId',
       as: 'driver',
     });
 
     try {
       await sequelizeInstance.sync({ alter: true });
-    } catch (error) {
-      this.logger.fatal('syncing error');
-      this.logger.fatal(error);
+    } catch (e) {
+      this.logger.fatal('Syncing error');
+      this.logger.fatal(e);
+      console.log(e);
       process.exit(1);
     }
-    this.logger.verbose('postgres  database is connected');
+    this.logger.verbose('Postgres database is connected!');
     this.connection = sequelizeInstance;
   }
 
