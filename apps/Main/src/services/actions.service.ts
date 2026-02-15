@@ -2,15 +2,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Injectable } from '@nestjs/common';
-import { DriverService } from 'providers/driver.service';
+import { DriverService } from 'src/providers/driver.service';
 import { ServiceClientActionInputDto, ServiceResponseData } from './dto';
 import _ from 'lodash';
-import { AdminService } from 'providers/admin.service';
+import { AdminService } from 'src/providers/admin.service';
+import { PassengersService } from 'src/providers/passenger.service';
 @Injectable()
 export class SelfActionService {
   constructor(
     private readonly driverService: DriverService,
     private readonly adminService: AdminService,
+    private readonly passengerService: PassengersService,
   ) {}
 
   async findAndCall(
@@ -30,7 +32,9 @@ export class SelfActionService {
       case 'ADMINS':
         provider = this.adminService;
         break;
-
+      case 'PASSENGERS':
+        provider = this.passengerService;
+        break;
       default:
         provider = null;
         break;

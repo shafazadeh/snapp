@@ -1,19 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { PostgresService } from 'src/databases/postgress/postgress.service';
-import { RedisService } from 'src/databases/redis/rediis.service';
+import { UtilsService } from 'src/utils/utils.service';
+import { RedisService } from 'src/databases/redis/redis.service';
 import {
   ServiceClientContextDto,
   ServiceResponseData,
   SrvError,
 } from 'src/services/dto';
-import { UtilsService } from 'src/utils/utils.service';
+import { PostgresService } from 'src/databases/postgres/postgres.service';
 
 @Injectable()
-export class DriverService {
-  private static readonly role = 'driver';
+export class PassengersService {
+  private static readonly role = 'passenger';
   private readonly OTP_TTL_SECONDS = 120;
 
   constructor(
@@ -22,6 +19,9 @@ export class DriverService {
     private readonly utils: UtilsService,
   ) {}
 
+  /* =======================
+     Request OTP
+  ======================= */
   async requestOtp({
     query,
   }: ServiceClientContextDto): Promise<ServiceResponseData> {
@@ -31,8 +31,8 @@ export class DriverService {
       throw new SrvError(HttpStatus.BAD_REQUEST, 'Invalid phone');
     }
 
-    const otpKey = `otp:${DriverService.role}:${phone}`;
-
+    const otpKey = `otp:${PassengersService.role}:${phone}`;
+    PassengersService;
     const existing = await this.redis.cacheCli.get(otpKey);
     if (existing) {
       throw new SrvError(HttpStatus.BAD_REQUEST, 'OTP already sent');
@@ -53,11 +53,14 @@ export class DriverService {
     };
   }
 
+  /* =======================
+     Verify OTP
+  ======================= */
   async verifyOtp({
     query,
   }: ServiceClientContextDto): Promise<ServiceResponseData> {
     const { phone, otp } = query;
-    const key = `otp:${DriverService.role}:${phone}`;
+    const key = `otp:${PassengersService.role}:${phone}`;
 
     const savedOtp = await this.redis.cacheCli.get(key);
     if (!savedOtp) {
@@ -70,39 +73,45 @@ export class DriverService {
 
     await this.redis.cacheCli.del(key);
 
-    let profile = await this.pg.models.Driver.findOne({ where: { phone } });
-    if (!profile) {
-      profile = await this.pg.models.Driver.create({ phone });
-    }
-
-    await this.pg.models.DriverSession.destroy({
-      where: { driverId: profile.id },
+    let profile = await this.pg.models.Passenger.findOne({
+      where: { phone },
     });
 
-    const newSession = await this.pg.models.DriverSession.create({
-      driverId: profile.id,
+    if (!profile) {
+      profile = await this.pg.models.Passenger.create({ phone });
+    }
+
+    await this.pg.models.PassengerSession.destroy({
+      where: { passengerId: profile.id },
+    });
+
+    const newSession = await this.pg.models.PassengerSession.create({
+      passengerId: profile.id,
       refreshExpiresAt: +new Date(),
     });
 
     const accessToken = new this.utils.JwtHandler.AccessToken(
       profile.id,
-      'DRIVER',
+      'PASSENGER',
     );
+
     const tokenData = accessToken.generate(newSession.id);
 
     await newSession.update({
       refreshExpiresAt: tokenData!.payload.refreshExpiresAt,
     });
+
     await newSession.reload();
 
     await this.redis.cacheCli.set(
-      `driver_${profile.id}`,
+      `passenger_${profile.id}`,
       JSON.stringify(JSON.parse(JSON.stringify(profile))),
       'EX',
       900,
     );
+
     await this.redis.cacheCli.set(
-      `driverSession_${newSession.id}`,
+      `passengerSession_${newSession.id}`,
       JSON.stringify(newSession),
       'EX',
       900,
@@ -118,41 +127,51 @@ export class DriverService {
     };
   }
 
+  /* =======================
+     Authorize
+  ======================= */
   async authorize({
     query: { token },
   }: ServiceClientContextDto): Promise<ServiceResponseData> {
     let isAuthorized = false;
     let tokenData;
-    let driver;
+    let passenger;
     let session;
 
     const decodedToken: any = this.utils.JwtHandler.decodeToken(token);
+
     if (decodedToken) {
-      const driverId = decodedToken.aid;
-      driver = await this.getDriverById(driverId);
-      if (driver) {
+      const passengerId = decodedToken.aid;
+
+      passenger = await this.getPassengerById(passengerId);
+
+      if (passenger) {
         session = await this.getSessionById(decodedToken.sid);
         const now = Date.now();
 
         if (+new Date(decodedToken.refreshExpiresAt) <= now) {
           if (session) {
-            await this.pg.models.DriverSession.destroy({
+            await this.pg.models.PassengerSession.destroy({
               where: { id: decodedToken.sid },
             });
-            await this.redis.cacheCli.del(`driverSession_${decodedToken.sid}`);
+            await this.redis.cacheCli.del(
+              `passengerSession_${decodedToken.sid}`,
+            );
           }
         } else if (+new Date(decodedToken.accessExpiresAt) <= now) {
           if (session) {
             const accessToken = new this.utils.JwtHandler.AccessToken(
-              driver.id,
-              'DRIVER',
+              passenger.id,
+              'PASSENGER',
             );
+
             tokenData = accessToken.generate(session.id);
 
             session = await this.extendSession(
               session.id,
               tokenData.payload.refreshExpiresAt,
             );
+
             isAuthorized = true;
           }
         } else {
@@ -165,61 +184,77 @@ export class DriverService {
       data: {
         isAuthorized,
         tokenData,
-        driver,
+        passenger,
         session,
-        isActive: driver?.isActive ?? null,
+        isActive: passenger?.isActive ?? null,
       },
     };
   }
 
-  private async getDriverById(id: string) {
-    let driver = null;
-    let _driver: any = await this.redis.cacheCli.get(`driver_${id}`);
-    if (!_driver) {
-      _driver = await this.pg.models.Driver.findByPk(id);
-      if (!_driver) return null;
-      _driver = JSON.parse(JSON.stringify(_driver));
+  /* =======================
+     Helpers
+  ======================= */
+
+  private async getPassengerById(id: string) {
+    let passenger = null;
+    let _passenger: any = await this.redis.cacheCli.get(`passenger_${id}`);
+
+    if (!_passenger) {
+      _passenger = await this.pg.models.Passenger.findByPk(id);
+      if (!_passenger) return null;
+
+      _passenger = JSON.parse(JSON.stringify(_passenger));
+
       await this.redis.cacheCli.set(
-        `driver_${_driver.id}`,
-        JSON.stringify(_driver),
+        `passenger_${_passenger.id}`,
+        JSON.stringify(_passenger),
         'EX',
         900,
       );
-      driver = _driver;
-    } else driver = JSON.parse(_driver);
-    return driver;
+
+      passenger = _passenger;
+    } else passenger = JSON.parse(_passenger);
+
+    return passenger;
   }
 
   private async getSessionById(id: string) {
     let session = null;
-    let _session: any = await this.redis.cacheCli.get(`driverSession_${id}`);
+    let _session: any = await this.redis.cacheCli.get(`passengerSession_${id}`);
+
     if (!_session) {
-      _session = await this.pg.models.DriverSession.findByPk(id);
+      _session = await this.pg.models.PassengerSession.findByPk(id);
       if (!_session) return null;
+
       await this.redis.cacheCli.set(
-        `driverSession_${_session.id}`,
+        `passengerSession_${_session.id}`,
         JSON.stringify(_session),
         'EX',
         900,
       );
+
       session = _session;
     } else session = JSON.parse(_session);
+
     return session;
   }
 
   private async extendSession(id: string, refreshExpiresAt: number) {
-    const updated = await this.pg.models.DriverSession.update(
+    const updated = await this.pg.models.PassengerSession.update(
       { refreshExpiresAt },
       { where: { id }, returning: true },
     );
+
     const session = updated[0] ? updated[1][0] : null;
+
     if (session)
       await this.redis.cacheCli.set(
-        `driverSession_${session.id}`,
+        `passengerSession_${session.id}`,
         JSON.stringify(session),
         'EX',
         900,
       );
+
     return session;
   }
 }

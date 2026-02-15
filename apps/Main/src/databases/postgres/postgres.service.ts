@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// src/database/postgres.service.ts
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Sequelize } from 'sequelize-typescript';
 
@@ -49,6 +50,15 @@ export class PostgresService implements OnModuleInit {
     models.DriverSession.belongsTo(models.Driver, {
       foreignKey: 'driverId',
       as: 'driver',
+    });
+
+    models.Passenger.hasOne(models.PassengerSession, {
+      foreignKey: 'passengerId',
+      as: 'session',
+    });
+    models.PassengerSession.belongsTo(models.Passenger, {
+      foreignKey: 'passengerId',
+      as: 'passenger',
     });
 
     try {

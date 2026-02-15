@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { PostgresService } from './postgress/postgress.service';
-import { RedisService } from './redis/rediis.service';
+import { RedisService } from './redis/redis.service';
+import { PostgresService } from './postgres/postgres.service';
 
 @Global()
 @Module({

@@ -7,8 +7,8 @@ import {
   Logger,
   OnApplicationBootstrap,
 } from '@nestjs/common';
-import { PostgresService } from 'src/databases/postgress/postgress.service';
-import { RedisService } from 'src/databases/redis/rediis.service';
+import { PostgresService } from 'src/databases/postgres/postgres.service';
+import { RedisService } from 'src/databases/redis/redis.service';
 
 import {
   ServiceClientContextDto,
